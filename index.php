@@ -33,23 +33,25 @@
         <th>Service</th>
       </tr>
       <?php $n=1; ?>
-      <?php while($row = $query->fetch_row()){?>
+      <?php 
+if($query->num_rows() > 0){
+while($row = $query->fetch_row()){?>
       <tr>
         <td><?php echo $n; ?></td>
-        <td><?php echo $row[1]; ?></td>
+        <td><?php echo $row[]; ?></td>
         <td><?php echo $row[2]; ?></td>
         <td><b>-</b></td>
         <td>
           <span class="btn btn-danger" id="delete" onclick="fdelete('<?php echo $row[0]; ?>')">DELETE DEVICE</span>
         </td>
         <td>
-          <span class="btn btn-success" onclick="fconnect('<?php echo $row[1].'#'.$row[2]; ?>')">CONNECT</span>
-          <span class="btn btn-warning" onclick="fdisconnect('<?php echo $row[1].'#'.$row[2]; ?>')">DISCONNECT</span>
-          <span class="btn btn-info" onclick="fstatus('<?php echo $row[1].'#'.$row[2]; ?>')">STATUS</span>
+          <span class="btn btn-success" onclick="fconnect('<?php echo $row[1].'#'.$row[2]; ?>', this)">CONNECT</span>
+          <span class="btn btn-warning" onclick="fdisconnect('<?php echo $row[1].'#'.$row[2]; ?>', this)">DISCONNECT</span>
+          <span class="btn btn-info" onclick="fstatus('<?php echo $row[1].'#'.$row[2]; ?>', null, this)">STATUS</span>
         </td>
       </tr>
       <?php $n++; ?>
-      <?php } ?>
+      <?php }} ?>
     </table>
 
     <img src="spinner.gif" style="display:none;margin-battom:5px;" id="spinner">
@@ -102,12 +104,19 @@
         });
       }
 
-      function fconnect(val){
+      function ftest(cmd, elm){
+        console.log(cmd);
+        console.log(elm.parentNode.parentNode.rowIndex); //rowIndex
+        console.log(elm.parentNode.cellIndex); //cellIndex
+      }
+
+      function fconnect(val, elm){
         console.log(val);
         var sval = val.split("#");
         var ip = sval[0];
         var deviceid = sval[1];
         var req = 'ip='+ip+'&deviceid='+deviceid;
+        var row = elm.parentNode.parentNode.rowIndex + 1;
         if ((ip != "") && (deviceid != "")) {
           $.ajax({
             url: 'status.php',
@@ -124,10 +133,14 @@
                   success: function(res){
                     console.log(res);
                     // $("#status").html(res);
+                    $('table tr:nth-child('+row+') td').eq(3).html(res);
+
                   }
                 });
               } else {
-                // $("#status").html("<b>SERVICE | RUNNING</b>");
+                  // $("#status").html("<b>SERVICE | RUNNING</b>");
+                  $('table tr:nth-child('+row+') td').eq(3).html('<b> SERVICE | RUNNING</b>');
+
               }
             }
           });
@@ -136,12 +149,13 @@
         }
       }
 
-      function fdisconnect(val){
+      function fdisconnect(val, elm){
         console.log(val);
         var sval = val.split("#");
         var ip = sval[0];
         var deviceid = sval[1];
         var req = 'ip='+ip+'&deviceid='+deviceid;
+        var row = elm.parentNode.parentNode.rowIndex + 1;
         $.ajax({
           url: 'status.php',
           data: req,
@@ -153,37 +167,67 @@
                 data: req,
                 type: "GET",
                 success: function(res){
-                  // $("#status").html(res);
+                    // $("#status").html(res);
+                    $('table tr:nth-child('+row+') td').eq(3).html(res);
+
                 }
               });
             } else {
-              //$("#status").html("<b>SERVICE | Not Found</b>");
+                //$("#status").html("<b>SERVICE | Not Found</b>");
+                $('table tr:nth-child('+row+') td').eq(3).html('<b> SERVICE | NOT FOUND</b>');
             }
           }
         });
       }
 
-      function fstatus(val){
+      function fstatus(val, n, elm){
         console.log(val);
         var sval = val.split("#");
         var ip = sval[0];
         var deviceid = sval[1];
         var req = 'ip='+ip+'&deviceid='+deviceid;
+        if(n == null){
+            var row = elm.parentNode.parentNode.rowIndex + 1;
+        }else{
+            var row = n;
+        }
         $.ajax({
           url: 'status.php',
           data: req,
           type: "GET",
           success: function(res){
             if (res != "") {
-              // $("#status").html(res);
+                // $("#status").html(res);
+                console.log(row);
+                $('table tr:nth-child('+row+') td').eq(3).html(res);
             } else {
-              // $("#status").html("<b>SERVICE | Not Found</b>");
+                // $("#status").html("<b>SERVICE | Not Found</b>");
+                $('table tr:nth-child('+row+') td').eq(3).html('<b> SERVICE | NOT FOUND</b>');
             }
           }
         });
       }
 
       $(document).ready(function(){
+        var c_row = $('table tr').length;
+        for(var i = 2; i <= c_row; i++){
+            var ip = $('table tr:nth-child('+i+') td').eq(1).text();
+            var device = $('table tr:nth-child('+i+') td').eq(2).text();
+            var val = ip+"#"+device;
+            console.log(val);
+            fstatus(val, i);
+        }
+
+
+
+        /* $('table tr').each(function(index){
+            // var rowP = row + 2;
+            var ip = $('table tr:nth-child('+index+') td').eq(1).text();
+            var device = $('table tr:nth-child('+index+') td').eq(2).text();
+            var val = ip+"#"+device;
+            console.log(val);
+        }) */
+
         $("#save").click(function(){
           var ip = $("#ip").val();
           var deviceid = $("#deviceid").val();

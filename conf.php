@@ -4,7 +4,7 @@ $hostname = "127.0.0.1";
 
 // Username presensi_db Password pr3DbGTK
 $username = "root";
-$password = "anjanimd5";
+$password = "anjani1292";
 $database = "presensi_db";
 
 // MySQL Connection
