@@ -14,5 +14,7 @@
   // $command = 'killall -9 finger_service.php';
   $command = "pkill -f 'php finger_service.php ".$ip." ".$deviceid."'";
   exec($command);
+  $command2 = "pkill -f 'php ping.php ".$ip." ".$deviceid."'";
+  exec($command2);
   echo "<b>SERVICE | php finger_service.php ".$ip." ".$deviceid." | STOP<b>";
 ?>

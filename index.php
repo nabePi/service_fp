@@ -33,25 +33,25 @@
         <th>Service</th>
       </tr>
       <?php $n=1; ?>
-      <?php 
-if($query->num_rows() > 0){
+      <?php
 while($row = $query->fetch_row()){?>
       <tr>
         <td><?php echo $n; ?></td>
-        <td><?php echo $row[]; ?></td>
+        <td><?php echo $row[1]; ?></td>
         <td><?php echo $row[2]; ?></td>
         <td><b>-</b></td>
         <td>
           <span class="btn btn-danger" id="delete" onclick="fdelete('<?php echo $row[0]; ?>')">DELETE DEVICE</span>
         </td>
         <td>
+          <span class="btn btn-primary" onclick="fsync('<?php echo $row[1].'#'.$row[2]; ?>', this)">SYNC</span>
           <span class="btn btn-success" onclick="fconnect('<?php echo $row[1].'#'.$row[2]; ?>', this)">CONNECT</span>
           <span class="btn btn-warning" onclick="fdisconnect('<?php echo $row[1].'#'.$row[2]; ?>', this)">DISCONNECT</span>
           <span class="btn btn-info" onclick="fstatus('<?php echo $row[1].'#'.$row[2]; ?>', null, this)">STATUS</span>
         </td>
       </tr>
       <?php $n++; ?>
-      <?php }} ?>
+      <?php } ?>
     </table>
 
     <img src="spinner.gif" style="display:none;margin-battom:5px;" id="spinner">
@@ -176,6 +176,28 @@ while($row = $query->fetch_row()){?>
                 //$("#status").html("<b>SERVICE | Not Found</b>");
                 $('table tr:nth-child('+row+') td').eq(3).html('<b> SERVICE | NOT FOUND</b>');
             }
+          }
+        });
+      }
+
+      function fsync(val, elm){
+        console.log(val);
+        var sval = val.split("#");
+        var ip = sval[0];
+        var deviceid = sval[1];
+        var req = 'ip='+ip+'&deviceid='+deviceid;
+        var row = elm.parentNode.parentNode.rowIndex + 1;
+        $.ajax({
+          beforeSend: function() { $("#spinner").css("display", "block"); },
+          complete: function() { $("#spinner").css("display", "none"); },
+          url: 'start_sync_time_manual.php',
+          data: req,
+          type: "GET",
+          success: function(res){
+            console.log(res);
+            // $("#status").html(res);
+            $('table tr:nth-child('+row+') td').eq(3).html(res);
+
           }
         });
       }

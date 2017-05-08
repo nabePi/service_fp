@@ -1,7 +1,7 @@
 <?php
 
 error_reporting(~E_WARNING);
-require_once 'conf.php';
+// require_once 'conf.php';
 require_once 'function.php';
 
 $server = $argv[1];
@@ -135,6 +135,8 @@ while(1)
 	$u = unpack('H88', substr( $data_recv, 0, 44) );
 	if ($u) {
 		// var_dump($u);
+		// print_r("test");
+		print_r($u);
 		$_userid = substr($u[1],16,18);
 		$create_userid = '';
 		for ($i=0; $i < strlen($_userid); $i++) {
@@ -164,21 +166,36 @@ while(1)
 		print_r("Status = ".$fstatus."\n");
 		print_r("=======================================\n");
 
+		//new modify
+		$dateNow = $_dateY.'-'.$_dateM.'-'.$_dateD;
+		$newDateNow = new DateTime($dateNow, new DateTimeZone("Asia/Jakarta"));
+
+		$newDateNow->modify("-1 day");
+		$dateMinusOne = $newDateNow->format("Y-m-d");
+
+		date_default_timezone_set("Asia/Jakarta");
+		$dateSystem = date('Y-m-d');
+		$timeSystem = date('H:i:s');
+
 		// SQL query
 		$query = $con->query("SELECT * FROM presensi WHERE kode_device = '$fuserid' AND tanggal = '$fdate'");
 		// print_r($query);
 		if($query->num_rows < 1){
-			// print_r("ok");
-			$in = $con->query("INSERT INTO presensi VALUES(NULL, '$fuserid', '$fdate', '', '')");
-			// print_r($in);
-			// print_r($_timeH);
-			if(intval($_timeH) < 14) {
-				// print_r("haha");
-				$con->query("UPDATE presensi SET jam_masuk = '$ftime' WHERE kode_device = '$fuserid' AND tanggal = '$fdate'");
-			} else {
-				$test = $con->query("UPDATE presensi SET jam_keluar = '$ftime' WHERE kode_device = '$fuserid' AND tanggal = '$fdate'");
-
-				// print_r($test);
+			if(intval($_timeH) <= 4) {
+				$queryC = $con->query("SELECT jam_keluar FROM presensi WHERE kode_device = '$fuserid' AND tanggal = '$dateMinusOne'");
+				$jam_keluarC = $queryC->fetch_row();
+				if(empty($jam_keluarC[0])){
+					$con->query("UPDATE presensi SET jam_keluar = '$ftime' WHERE kode_device = '$fuserid' AND tanggal = '$dateMinusOne'");
+				}
+			}
+			else if(intval($_timeH) >= 5){
+				$in = $con->query("INSERT INTO presensi VALUES(NULL, '$fuserid', '$fdate', '', '')");
+				if(intval($_timeH) < 14) {
+					$con->query("UPDATE presensi SET jam_masuk = '$ftime' WHERE kode_device = '$fuserid' AND tanggal = '$fdate'");
+				}
+				else {
+					$con->query("UPDATE presensi SET jam_keluar = '$ftime' WHERE kode_device = '$fuserid' AND tanggal = '$fdate'");
+				}
 			}
 		} else {
 			if($_timeH >= 14) {
@@ -186,6 +203,7 @@ while(1)
 			}
 			// print_r("dada");
 		}
+
 		// END SQL query
 
 	}
